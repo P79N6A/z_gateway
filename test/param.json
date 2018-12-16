@@ -18,7 +18,7 @@
       "name": "status",
       "order": 3,
       "type": "int32",
-      "default": "0",
+      "default": 0,
       "is_required": true
     },
     {
@@ -85,6 +85,12 @@
           }
         ]
       }
+    },
+    {
+      "name": "is_registery",
+      "order": 7,
+      "type": "bool",
+      "default": true
     }
   ]
 }
