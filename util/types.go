@@ -1,5 +1,7 @@
 package util
 
+import "unicode"
+
 var G_JSON_TYPES = map[string]bool {
 	"bool": true,
 	"int8": true, "uint8": true,
@@ -32,3 +34,27 @@ var G_CONVERT_TYPES = map[string] func(float64)interface{} {
 	"float64": func(val float64) interface{} {return val},
 }
 
+var G_PROTO_TYPES = map[string] bool {
+	"double": true, "float": true,
+	"int32": true, "int64": true,
+	"uint32": true, "uint64": true,
+	"sint32": true, "sint64": true,
+	"fixed32": true, "fixed64": true,
+	"sfixed32": true, "sfixed64": true,
+	"bool": true, "string": true,
+	"bytes": true}
+
+func IsIdentifier(str []rune) bool {
+	count := 0
+	for i, ch := range str {
+		if i == 0 && (ch != '_' && !unicode.IsLetter(ch)) {
+			return false
+		}
+
+		if unicode.IsDigit(ch) || unicode.IsLetter(ch) {
+			count ++
+		}
+	}
+
+	return count > 0
+}

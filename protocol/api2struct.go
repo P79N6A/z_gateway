@@ -19,13 +19,15 @@ type Api2Struct struct {
 	Uri string
 	RequestType string
 	Desc string
+	StructsMap *map[string]*StructObj
 }
 
-func NewApi2Struct(Uri string, RequestType string, Desc string, JsonObj *gabs.Container) (*Api2Struct) {
+func NewApi2Struct(Uri string, RequestType string, Desc string, structsMap *map[string]*StructObj, JsonObj *gabs.Container) (*Api2Struct) {
 	var api2Struct Api2Struct
 	api2Struct.Uri = Uri
 	api2Struct.RequestType = RequestType
 	api2Struct.Desc = Desc
+	api2Struct.StructsMap = structsMap
 	api2Struct.JsonObj = JsonObj
 	return &api2Struct
 }
@@ -63,7 +65,7 @@ func (api2Struct *Api2Struct) ToStructs() (error) {
 	if api2Struct.JsonObj.ExistsP("request_params") {
 		requestParamsName := strcase.ToCamel(fmt.Sprintf("%s_%s", apiName, "RequestParams"))
 		requestParamsObj := api2Struct.JsonObj.Path("request_params")
-		api2Struct.RequestParams = NewParams2Struct(requestParamsName, "",  requestParamsObj)
+		api2Struct.RequestParams = NewParams2Struct(requestParamsName, "",  api2Struct.StructsMap, requestParamsObj)
 		if err := api2Struct.RequestParams.ToStructs(); err != nil {
 			return err
 		}
@@ -72,7 +74,7 @@ func (api2Struct *Api2Struct) ToStructs() (error) {
 	if api2Struct.JsonObj.ExistsP("request_headers") {
 		requestHeadersName := strcase.ToCamel(fmt.Sprintf("%s_%s", apiName, "RequestHeaders"))
 		requestHeadersObj := api2Struct.JsonObj.Path("request_headers")
-		api2Struct.RequestHeaders = NewParams2Struct(requestHeadersName, "", requestHeadersObj)
+		api2Struct.RequestHeaders = NewParams2Struct(requestHeadersName, "", api2Struct.StructsMap, requestHeadersObj)
 		if err := api2Struct.RequestHeaders.ToStructs(); err != nil {
 			return err
 		}
@@ -82,7 +84,7 @@ func (api2Struct *Api2Struct) ToStructs() (error) {
 		requestBodyName := strcase.ToCamel(fmt.Sprintf("%s_%s", apiName, "RequestBody"))
 
 		requestBodyObj := api2Struct.JsonObj.Path("request_body")
-		api2Struct.RequestBody = NewParams2Struct(requestBodyName, "", requestBodyObj)
+		api2Struct.RequestBody = NewParams2Struct(requestBodyName, "", api2Struct.StructsMap, requestBodyObj)
 		if err := api2Struct.RequestBody.ToStructs(); err != nil {
 			return err
 		}
@@ -91,7 +93,7 @@ func (api2Struct *Api2Struct) ToStructs() (error) {
 	if api2Struct.JsonObj.ExistsP("response_body") {
 		responseBodyName := strcase.ToCamel(fmt.Sprintf("%s_%s", apiName, "ResponseBody"))
 		repsonseBodyObj := api2Struct.JsonObj.Path("response_body")
-		api2Struct.ResponseBoby = NewParams2Struct(responseBodyName, "", repsonseBodyObj)
+		api2Struct.ResponseBoby = NewParams2Struct(responseBodyName, "", api2Struct.StructsMap, repsonseBodyObj)
 		if err := api2Struct.ResponseBoby.ToStructs(); err != nil {
 			return err
 		}
@@ -168,6 +170,6 @@ func (api2Struct *Api2Struct) ToProtobufFuncStr() (string) {
 	if api2Struct.Desc != "" {
 		protoSource += api2Struct.Desc
 	}
-	
+
 	return protoSource
 }

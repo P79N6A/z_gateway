@@ -25,6 +25,19 @@ func (structObj *StructObj) SortStructVars() *StructObj {
 	return structObj
 }
 
+func (structObj *StructObj) StructIsEqual(otherStructObj *StructObj) bool {
+	if len(structObj.Vars) != len(otherStructObj.Vars) {
+		return false
+	}
+
+	for i := 0; i < len(structObj.Vars); i ++ {
+		if false == structObj.Vars[i].StructVarIsEqual(otherStructObj.Vars[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 func (structObj *StructObj) ToStr() string {
 	protoSource := ""
 	if structObj.Desc != "" {
@@ -72,18 +85,29 @@ type StructVar struct {
 	Default interface{}
 }
 
+func (structVar *StructVar) StructVarIsEqual(otherStructVar *StructVar) bool {
+	return structVar.Order == otherStructVar.Order &&
+		   structVar.Name == otherStructVar.Name &&
+		   structVar.Type == otherStructVar.Type &&
+		   structVar.SubType == otherStructVar.SubType &&
+		   structVar.IsRequired == otherStructVar.IsRequired &&
+		   structVar.Default == otherStructVar.Default
+}
+
 type Params2Struct struct {
 	JsonObj *gabs.Container
 	JsonName string
 	JsonDesc string
-	Structs []*StructObj
+	StructsList []*StructObj
+	StructsMap *map[string]*StructObj
 }
 
-func NewParams2Struct(JsonName string, JsonDesc string, JsonObj *gabs.Container) *Params2Struct {
+func NewParams2Struct(JsonName string, JsonDesc string, structsMap *map[string]*StructObj, JsonObj *gabs.Container) *Params2Struct {
 	var params2Struct Params2Struct
-	params2Struct.JsonObj = JsonObj
 	params2Struct.JsonName = JsonName
 	params2Struct.JsonDesc = JsonDesc
+	params2Struct.StructsMap = structsMap
+	params2Struct.JsonObj = JsonObj
 	return &params2Struct
 }
 
@@ -115,23 +139,42 @@ func (params2Struct *Params2Struct) Load(filename string) (error) {
 }
 
 func (params2Struct *Params2Struct) ToStructs() (error) {
-	_, err := params2Struct.fields_2_obj(params2Struct.JsonName, params2Struct.JsonDesc, params2Struct.JsonObj)
+	prefixName := ""
+	_, err := params2Struct.fields_2_obj(prefixName, params2Struct.JsonName, params2Struct.JsonDesc, params2Struct.JsonObj)
 	return err
 }
 
 func (params2Struct *Params2Struct) ToProtobufStr() (string) {
 	protoSource := ""
-	for _, structObj := range params2Struct.Structs {
+	for _, structObj := range params2Struct.StructsList {
 		protoSource += structObj.ToStr() + "\n"
 	}
 	return protoSource
 }
 
-func (params2Struct *Params2Struct) add_message(msg *StructObj) {
-	params2Struct.Structs = append(params2Struct.Structs, msg.SortStructVars())
+func (params2Struct *Params2Struct) add_struct(prefixStructName string, shortStructName string, structObj *StructObj) {
+	structName := strcase.ToCamel(shortStructName)
+	existStructObj, ok := (*params2Struct.StructsMap)[structName]
+
+	if false == ok {
+		structObj.Name = structName
+		params2Struct.StructsList = append(params2Struct.StructsList, structObj.SortStructVars())
+		(*params2Struct.StructsMap)[structName] = structObj
+		return
+	}
+
+	if true == existStructObj.StructIsEqual(structObj) {
+		return
+	}
+
+	structName = strcase.ToCamel(prefixStructName + "_" + shortStructName)
+	structObj.Name = structName
+	params2Struct.StructsList = append(params2Struct.StructsList, structObj.SortStructVars())
+	(*params2Struct.StructsMap)[structName] = structObj
 }
 
-func (params2Struct *Params2Struct) fields_2_obj(messageName string, desc string, obj *gabs.Container) (string, error) {
+func (params2Struct *Params2Struct) fields_2_obj(prefixName string, structName string, desc string,
+	                                             obj *gabs.Container) (string, error) {
 	if obj == nil {
 		return "", nil
 	}
@@ -140,19 +183,20 @@ func (params2Struct *Params2Struct) fields_2_obj(messageName string, desc string
 		return "", errors.New("fields not exist")
 	}
 
-	var message StructObj
-	message.Name = strcase.ToCamel(messageName)
-	message.Desc = desc
+	var structObj StructObj
+	structObj.Name = strcase.ToCamel(structName)
+	structObj.Desc = desc
 	fields, _ := obj.S("fields").Children()
 	for _, field := range fields {
-		if protoVar, err := params2Struct.field_2_var(field); err != nil {
+		if protoVar, err := params2Struct.field_2_var(prefixName, field); err != nil {
 			return "", err
 		} else {
-			message.Vars = append(message.Vars, protoVar)
+			structObj.Vars = append(structObj.Vars, protoVar)
 		}
 	}
-	params2Struct.add_message(&message)
-	return message.Name, nil
+
+	params2Struct.add_struct(prefixName, structName, &structObj)
+	return structObj.Name, nil
 }
 
 func(params2Struct *Params2Struct) get_default(protoType string, defaultContainer *gabs.Container) (interface{}, error) {
@@ -182,7 +226,7 @@ func(params2Struct *Params2Struct) get_default(protoType string, defaultContaine
 	return nil, nil
 }
 
-func (params2Struct *Params2Struct) field_2_var(field *gabs.Container) (*StructVar, error) {
+func (params2Struct *Params2Struct) field_2_var(prefixName string, field *gabs.Container) (*StructVar, error) {
 	var protoVar StructVar
 	if false == field.Exists("name") {
 		return nil, errors.New("字段属性中不存在key[name]")
@@ -224,7 +268,7 @@ func (params2Struct *Params2Struct) field_2_var(field *gabs.Container) (*StructV
 	}
 
 	if protoVar.Type == "object" {
-		if objName, err := params2Struct.fields_2_obj(strcase.ToCamel(protoVar.Name), protoVar.Desc, field); err != nil {
+		if objName, err := params2Struct.fields_2_obj(prefixName, strcase.ToCamel(protoVar.Name), protoVar.Desc, field); err != nil {
 			return nil, err
 		} else {
 			protoVar.Type = objName
@@ -235,7 +279,7 @@ func (params2Struct *Params2Struct) field_2_var(field *gabs.Container) (*StructV
 		}
 
 		item := field.Path("item")
-		if subType, err := params2Struct.field_2_list(item); err != nil {
+		if subType, err := params2Struct.field_2_list(prefixName + "_" + "Item", item); err != nil {
 			return nil, err
 		} else {
 			protoVar.SubType = subType
@@ -245,7 +289,7 @@ func (params2Struct *Params2Struct) field_2_var(field *gabs.Container) (*StructV
 	return &protoVar, nil
 }
 
-func (params2Struct *Params2Struct) field_2_list(item *gabs.Container) (string, error) {
+func (params2Struct *Params2Struct) field_2_list(prefixName string, item *gabs.Container) (string, error) {
 	if false == item.Exists("type") {
 		return "", errors.New("list属性中不存在key[type]")
 	}
@@ -267,7 +311,7 @@ func (params2Struct *Params2Struct) field_2_list(item *gabs.Container) (string, 
 
 		itemName := item.Path("name").Data().(string)
 		objType := strcase.ToCamel(itemName)
-		params2Struct.fields_2_obj(objType, itemDesc, item)
+		params2Struct.fields_2_obj(prefixName, objType, itemDesc, item)
 		return objType, nil
 	}
 

@@ -13,6 +13,8 @@ type Module2Struct struct {
 
 	ApiStructs []*Api2Struct
 
+	StructsMap map[string]*StructObj
+
 	ModuleName string
 	Desc string
 	Version string
@@ -23,6 +25,9 @@ func NewModule2Struct(ModuleName string, Desc string, JsonObj *gabs.Container) (
 	module2Struct.ModuleName = ModuleName
 	module2Struct.Desc = Desc
 	module2Struct.JsonObj = JsonObj
+
+	module2Struct.StructsMap = make(map[string]*StructObj)
+
 	return &module2Struct
 }
 
@@ -97,7 +102,7 @@ func (module2Struct *Module2Struct) ToStructs() (error) {
 
 		params := api.Path("params")
 
-		api2Struct := NewApi2Struct(uri, requestType, desc, params)
+		api2Struct := NewApi2Struct(uri, requestType, desc, &module2Struct.StructsMap, params)
 		api2Struct.ToStructs()
 		module2Struct.ApiStructs = append(module2Struct.ApiStructs, api2Struct)
 	}
