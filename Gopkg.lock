@@ -18,6 +18,22 @@
   revision = "2b758aa73013d2b1f11077aeca87ea042a1438bf"
 
 [[projects]]
+  digest = "1:fb5738a52f16fd08ba0075dbd846f5aee655b9687e41602691782bb10e072c48"
+  name = "github.com/emicklei/proto"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e4c3d8119041027a1d3b012ca2160948802618d7"
+  version = "v1.6.7"
+
+[[projects]]
+  digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = "UT"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   digest = "1:89cd2208bdeb192cc83ee287216af3c987fc87a90b9087718ad6631b636cefcf"
   name = "github.com/iancoleman/strcase"
@@ -39,6 +55,8 @@
   input-imports = [
     "github.com/Jeffail/gabs",
     "github.com/bradfitz/slice",
+    "github.com/emicklei/proto",
+    "github.com/golang/protobuf/proto",
     "github.com/iancoleman/strcase",
   ]
   solver-name = "gps-cdcl"
