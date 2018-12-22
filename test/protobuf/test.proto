@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+// 学生
+service Student {
+    rpc TestCompleteParams(RequestData1) returns (ResponseBody) {
+        option (z_gateway) = {
+            uri: "/a/b/c"
+            type: "POST"
+        };
+    }
+
+    rpc TestRequestBody(RequestData2) returns (ResponseBody) {
+        option (z_gateway) = {
+            uri: "/a/b/c"
+            type: "GET"
+        };
+    }
+}
+
+message RequestData1 {
+    RequestParams  params = 1 [(z_gateway.param_type) = "params"];
+    RequestHeaders headers = 2 [(z_gateway.param_type) = "headers"];
+    RequestBody    body = 3 [(z_gateway.param_type) = "body"];
+}
+
+message RequestParams {
+    int64 student_no = 1;
+    int32 content_type = 0; // 0 - 简短的内容， 1 - 详细信息
+}
+
+message RequestHeaders {
+    repeated int32 max_findings = 1;
+    double min_findings = 2;
+}
+
+message RequestBody {
+    int32 max_findings = 1;
+    double min_findings = 2;   
+}
+
+
+
+message RequestData2 {
+    RequestParams  params = 1 [(z_gateway.param_type) = "params"];
+    RequestHeaders headers = 2 [(z_gateway.param_type) = "headers"];
+}
+
+message ResponseBody {
+    int32 max_findings = 1;
+    double min_findings = 2; 
+}
+

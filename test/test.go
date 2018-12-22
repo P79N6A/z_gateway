@@ -9,7 +9,7 @@ import (
 
 func main() {
 	goPath := os.Getenv("GOPATH")
-	reader, _ := os.Open(goPath + "/src/github.com/CharellKing/z_gateway/test/protobuf/user.proto")
+	reader, _ := os.Open(goPath + "/src/github.com/CharellKing/z_gateway/test/protobuf/test.proto")
 	defer reader.Close()
 
 	parser := proto.NewParser(reader)

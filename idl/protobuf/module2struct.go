@@ -1,49 +1,150 @@
 package protobuf
 
 import (
-	"fmt"
+	"bytes"
+	"github.com/CharellKing/z_gateway/idl"
 	"github.com/emicklei/proto"
-	"strings"
+	log "github.com/sirupsen/logrus"
 )
 
 
-type Protobuf2Struct struct {
-	Content string
+type Module2Struct struct {
+	idl.ModuleObj
+
+	Definition *proto.Proto
 }
 
-func NewProtobuf2Struct(Content string) (*Protobuf2Struct) {
-	proto2Struct := Protobuf2Struct{Content}
+func NewModule2Struct(content []byte) (*Module2Struct) {
+	var module2Struct Module2Struct
 
-	return &proto2Struct
-}
+	module2Struct.Extra = make(map[string]interface{})
 
-func HandleService(s *proto.Service) {
-	fmt.Println("hello")
-}
-
-func HandleMessage(m *proto.Message) {
-	fmt.Println("hello")
-}
-
-func HandleEnum(m *proto.Enum) {
-	fmt.Println("hello")
-}
-
-func (proto2Struct *Protobuf2Struct) ToStructs() error {
-	reader := strings.NewReader(proto2Struct.Content)
+	reader := bytes.NewReader(content)
 
 	parser := proto.NewParser(reader)
-	definition, err := parser.Parse()
-	if err != nil {
-		return err
+
+	var err error
+	if module2Struct.Definition, err = parser.Parse(); err != nil {
+		log.Error("analyze proto file failed: %v", err)
+		return nil
 	}
 
-	proto.Walk(definition, proto.WithService(HandleService),
-							proto.WithEnum(HandleEnum),
-							proto.WithMessage(HandleMessage))
-	return nil
+	return &module2Struct
 }
 
+func (module2Struct *Module2Struct) ToStructs() (*idl.ModuleObj) {
 
+	module2Struct.analyzeModule("", module2Struct.Definition)
+
+	// TODO:: 填充SubParams
+
+	return &module2Struct.ModuleObj
+}
+
+func (module2Struct *Module2Struct) analyzeModule(path string, protoElem *proto.Proto) {
+	for _, elem := range module2Struct.Definition.Elements {
+		if syntax, ok := elem.(*proto.Syntax); ok == true {
+			module2Struct.analyzeSyntax(syntax)
+		} else if message, ok := elem.(*proto.Message); ok == true {
+			module2Struct.analyzeMessage(message)
+		} else if service, ok := elem.(*proto.Service); ok == true {
+			module2Struct.analyzeService(service)
+		}
+	}
+}
+
+func (module2Struct *Module2Struct) analyzeSyntax(syntax *proto.Syntax) {
+	module2Struct.Extra["syntax"] = syntax.Value
+}
+
+func (module2Struct *Module2Struct) analyzeService(service *proto.Service) {
+	module2Struct.ModuleName = service.Name
+
+	if service.Comment != nil {
+		module2Struct.Desc = service.Comment.Message()
+	}
+
+	for _, elem := range service.Elements {
+		rpc := elem.(*proto.RPC)
+		module2Struct.analyzeApi(rpc)
+
+	}
+	module2Struct.ApiObjs = append(module2Struct.ApiObjs, )
+
+}
+
+func (module2Struct *Module2Struct) analyzeApi(rpc *proto.RPC) {
+	var apiObj idl.ApiObj
+	apiObj.FuncName = rpc.Name
+	apiObj.FuncParam.ParamName = rpc.RequestType
+	apiObj.FuncReturn = rpc.ReturnsType
+
+	for _, option := range rpc.Options {
+		if option.Name == "(z_gateway)" {
+			for _, apiAttr := range option.AggregatedConstants {
+				if apiAttr.Name == "uri" {
+					apiObj.Uri = apiAttr.Literal.Source
+				} else if apiAttr.Name == "type" {
+					apiObj.RequestType = apiAttr.Literal.Source
+				}
+			}
+		}
+	}
+
+	module2Struct.ApiObjs = append(module2Struct.ApiObjs, &apiObj)
+}
+
+func (module2Struct *Module2Struct) analyzeMessage(message *proto.Message) {
+	var structObj idl.StructObj
+
+	structObj.Name = message.Name
+
+	if message.Comment != nil {
+		structObj.Desc = message.Comment.Message()
+	}
+
+	for _, elem := range message.Elements {
+		if syntax, ok := elem.(*proto.Syntax); ok == true {
+			module2Struct.analyzeSyntax(syntax)
+		} else if message, ok := elem.(*proto.Message); ok == true {
+			module2Struct.analyzeMessage(message)
+		} else if service, ok := elem.(*proto.Service); ok == true {
+			module2Struct.analyzeService(service)
+		} else if field, ok := elem.(*proto.NormalField); ok == true {
+			module2Struct.analyzeField(&structObj, field)
+		}
+	}
+}
+
+func (module2Struct *Module2Struct) analyzeField(structObj *idl.StructObj, field *proto.NormalField) {
+	var structVar idl.StructVar
+	structVar.Extra = make(map[string]interface{})
+
+	structVar.IsRequired = true
+	if field.Optional == false {
+		structVar.IsRequired = true
+	}
+
+
+	if field.Repeated == true {
+		structVar.Type = "list"
+		structVar.SubType = field.Field.Type
+	} else {
+		structVar.Type = field.Field.Type
+	}
+
+	structVar.Name = field.Field.Name
+	structVar.Order = int32(field.Field.Sequence)
+
+	if field.Field.Comment != nil {
+		structVar.Desc = field.Field.Comment.Message()
+	}
+
+	for _, option := range field.Field.Options {
+		structVar.Extra[option.Name] = option.Constant.Source
+	}
+
+	structObj.Vars = append(structObj.Vars, &structVar)
+}
 
 
