@@ -19,6 +19,8 @@ func NewModule2Struct(content []byte) (*Module2Struct) {
 
 	module2Struct.Extra = make(map[string]interface{})
 
+	module2Struct.StructsMap = make(map[string]*idl.StructObj)
+
 	reader := bytes.NewReader(content)
 
 	parser := proto.NewParser(reader)
@@ -35,8 +37,7 @@ func NewModule2Struct(content []byte) (*Module2Struct) {
 func (module2Struct *Module2Struct) ToStructs() (*idl.ModuleObj) {
 
 	module2Struct.analyzeModule("", module2Struct.Definition)
-
-	// TODO:: 填充SubParams
+	module2Struct.fillSubParams()
 
 	return &module2Struct.ModuleObj
 }
@@ -69,8 +70,6 @@ func (module2Struct *Module2Struct) analyzeService(service *proto.Service) {
 		module2Struct.analyzeApi(rpc)
 
 	}
-	module2Struct.ApiObjs = append(module2Struct.ApiObjs, )
-
 }
 
 func (module2Struct *Module2Struct) analyzeApi(rpc *proto.RPC) {
@@ -114,6 +113,9 @@ func (module2Struct *Module2Struct) analyzeMessage(message *proto.Message) {
 			module2Struct.analyzeField(&structObj, field)
 		}
 	}
+
+	module2Struct.StructsMap[structObj.Name] = &structObj
+
 }
 
 func (module2Struct *Module2Struct) analyzeField(structObj *idl.StructObj, field *proto.NormalField) {
@@ -147,4 +149,40 @@ func (module2Struct *Module2Struct) analyzeField(structObj *idl.StructObj, field
 	structObj.Vars = append(structObj.Vars, &structVar)
 }
 
+func (module2Struct *Module2Struct) fillSubParams() {
+	for _, apiObj := range module2Struct.ApiObjs {
+		paramTypes := map[int]bool{}
+		paramName := apiObj.FuncParam.ParamName
+		if structObj, ok := module2Struct.StructsMap[paramName]; ok == true {
+			for _, structVar := range structObj.Vars {
+				if paramTypeStr, ok := structVar.Extra["(z_gateway.param_type)"]; ok == true {
+					paramType := -1
+					if paramTypeStr == "params" {
+						paramType = idl.ParamsType
+					} else if paramTypeStr == "headers" {
+						paramType = idl.HeadersType
+					} else if paramTypeStr == "body" {
+						paramType = idl.BodyType
+					} else {
+						log.Error("rpc param(%s)'s sub param(%s) z_gateway.param_type(%s) not in [params, headers, body]",
+									paramName, structVar.Name, paramTypeStr)
+						continue
+					}
 
+					if _, ok := paramTypes[paramType]; ok == false {
+						paramTypes[paramType] = true
+						apiObj.FuncParam.SubParams = append(apiObj.FuncParam.SubParams,
+							idl.SubApiParam{int32(paramType), structVar.Name})
+					} else {
+						log.Error("rpc param(%s)'s sub param(%s) z_gateway.param_type(%s) existed",
+							paramName, structVar.Name, paramTypeStr)
+					}
+
+				} else {
+					log.Error("rpc param's sub param(%s) not set z_gateway.param_type", structVar.Name)
+					continue
+				}
+			}
+		}
+	}
+}
