@@ -1,6 +1,9 @@
 package idl
 
-import "github.com/Jeffail/gabs"
+import (
+	"github.com/Jeffail/gabs"
+	"github.com/sirupsen/logrus"
+)
 
 // api's object
 type ApiObj struct {
@@ -24,7 +27,30 @@ func (apiObj *ApiObj) ToJson() (*gabs.Container) {
 	jsonObj.Set(apiObj.RequestType, "request_type")
 	jsonObj.Set(apiObj.Uri, "uri")
 
-	//jsonObj.Set(apiObj.FuncParam., "pack_param_type")
+	jsonObj.Set(apiObj.FuncParam.ParamName, "packed_param_name")
+
+	for _, subApiParam := range apiObj.FuncParam.SubParams {
+		apiParamTypeStr := ""
+		if subApiParam.HttpParamType == ParamsType {
+			apiParamTypeStr = "params"
+		} else if subApiParam.HttpParamType == HeadersType {
+			apiParamTypeStr = "headers"
+		} else if subApiParam.HttpParamType == BodyType {
+			apiParamTypeStr = "body"
+		}
+
+		if apiParamTypeStr != "" {
+			if structObj, ok := (*apiObj.StructsMap)[subApiParam.SubParamName]; ok == true {
+				structJson := structObj.ToJson()
+				structJson.Set(apiParamTypeStr, "sub_param_type")
+				jsonObj.ArrayAppend(structJson, "sub_params")
+			} else {
+				logrus.Error("struct(%s) not exist", subApiParam.SubParamName)
+			}
+		} else {
+			logrus.Error("struct(%s)'s sub param type(%s) not exist", subApiParam.SubParamName, apiParamTypeStr)
+		}
+	}
 
 	return jsonObj
 }

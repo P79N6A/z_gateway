@@ -22,7 +22,7 @@ func (moduleObj *ModuleObj) ToJson() *gabs.Container {
 	jsonObj.Set(moduleObj.Version, "version")
 
 	for k, v := range moduleObj.Extra {
-		jsonObj.Set(v, k)
+		jsonObj.Set(v, "extra." + k)
 	}
 
 	for _, apiObj := range moduleObj.ApiObjs {

@@ -3,7 +3,7 @@
     "request_type": "POST",
     "uri": "/api/archive/get_list",
     "pack_param_type": "GetListRequest",
-    "params": {
+    "sub_params": [
         "request_params": {
             "fields": [
                 {
@@ -156,5 +156,5 @@
                 }
             ]
         }
-    }
+    ]
 }

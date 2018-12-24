@@ -33,6 +33,15 @@ func (structObj *StructObj) StructIsEqual(otherStructObj *StructObj) bool {
 	return true
 }
 
-func (structObj *StructObj) ToStruct() *gabs.Container {
-	return nil
+
+func (structObj *StructObj) ToJson() *gabs.Container {
+	jsonObj := gabs.New()
+	jsonObj.Set(structObj.Name, "name")
+	jsonObj.Set(structObj.Desc, "desc")
+
+	for _, structVar := range structObj.Vars {
+		jsonObj.ArrayAppend(structVar.ToJson(), "fields")
+	}
+
+	return jsonObj
 }
