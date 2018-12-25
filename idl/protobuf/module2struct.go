@@ -74,6 +74,8 @@ func (module2Struct *Module2Struct) analyzeService(service *proto.Service) {
 
 func (module2Struct *Module2Struct) analyzeApi(rpc *proto.RPC) {
 	var apiObj idl.ApiObj
+	apiObj.StructsMap = &module2Struct.StructsMap
+
 	apiObj.FuncName = rpc.Name
 	apiObj.FuncParam.ParamName = rpc.RequestType
 	apiObj.FuncReturn = rpc.ReturnsType
@@ -120,6 +122,9 @@ func (module2Struct *Module2Struct) analyzeMessage(message *proto.Message) {
 
 func (module2Struct *Module2Struct) analyzeField(structObj *idl.StructObj, field *proto.NormalField) {
 	var structVar idl.StructVar
+
+	structVar.StructsMap = &module2Struct.StructsMap
+
 	structVar.Extra = make(map[string]interface{})
 
 	structVar.IsRequired = true
@@ -172,7 +177,7 @@ func (module2Struct *Module2Struct) fillSubParams() {
 					if _, ok := paramTypes[paramType]; ok == false {
 						paramTypes[paramType] = true
 						apiObj.FuncParam.SubParams = append(apiObj.FuncParam.SubParams,
-							idl.SubApiParam{int32(paramType), structVar.Name})
+							idl.SubApiParam{int32(paramType), structVar.Type})
 					} else {
 						log.Error("rpc param(%s)'s sub param(%s) z_gateway.param_type(%s) existed",
 							paramName, structVar.Name, paramTypeStr)

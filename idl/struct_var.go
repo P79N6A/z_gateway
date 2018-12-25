@@ -15,8 +15,7 @@ type StructVar struct {
 	Default    interface{}
 	Extra      map[string]interface{}
 
-	// TODO:: StructMaps
-	StructsMap map[string]*StructObj
+	StructsMap *map[string]*StructObj
 }
 
 func (structVar *StructVar) StructVarIsEqual(otherStructVar *StructVar) bool {
@@ -31,11 +30,11 @@ func (structVar *StructVar) StructVarIsEqual(otherStructVar *StructVar) bool {
 func (structVar *StructVar) ItemToJson() *gabs.Container {
 	if _, ok := BASIC_JSON_TYPES[structVar.SubType]; ok == true {
 		jsonObj := gabs.New()
-		jsonObj.Set(structVar.Type, "type")
+		jsonObj.Set(structVar.SubType, "type")
 		return jsonObj
 	}
 
-	if structObj, ok := structVar.StructsMap[structVar.SubType]; ok == true {
+	if structObj, ok := (*structVar.StructsMap)[structVar.SubType]; ok == true {
 		return structObj.ToJson()
 	}
 
@@ -58,15 +57,20 @@ func (structVar *StructVar) ToJson() *gabs.Container{
 
 	if structVar.Type == "list" {
 		jsonObj.Set(structVar.Type, "type")
-		jsonObj.Set(structVar.ItemToJson(), "item")
+		jsonObj.Set(structVar.ItemToJson().Data(), "item")
 		return jsonObj
 	}
 
-	if structObj, ok := structVar.StructsMap[structVar.Type]; ok == true {
+	if structObj, ok := (*structVar.StructsMap)[structVar.Type]; ok == true {
+
+		jsonObj = structObj.ToJson()
 		jsonObj.Set("object", "type")
 		jsonObj.Set(structVar.Type, "name")
 
-		jsonObj.Merge(structObj.ToJson())
+		jsonObj.Set(structVar.Order, "order")
+		jsonObj.Set(structVar.IsRequired, "is_required")
+		jsonObj.Set(structVar.Desc, "desc")
+
 	}
 
 	return jsonObj

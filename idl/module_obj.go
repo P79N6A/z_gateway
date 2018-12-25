@@ -26,7 +26,7 @@ func (moduleObj *ModuleObj) ToJson() *gabs.Container {
 	}
 
 	for _, apiObj := range moduleObj.ApiObjs {
-		jsonObj.ArrayAppend(apiObj.ToJson(), "apis")
+		jsonObj.ArrayAppend(apiObj.ToJson().Data(), "apis")
 	}
 	return jsonObj
 }

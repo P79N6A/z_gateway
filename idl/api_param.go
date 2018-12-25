@@ -16,7 +16,7 @@ const (
 
 type SubApiParam struct {
 	HttpParamType int32
-	SubParamName string
+	SubParamTypeName string
 }
 
 type ApiParam struct {

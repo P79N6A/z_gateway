@@ -42,7 +42,7 @@ func (structObj *StructObj) ToJson() *gabs.Container {
 
 
 	for _, structVar := range structObj.Vars {
-		jsonObj.ArrayAppend(structVar.ToJson(), "fields")
+		jsonObj.ArrayAppend(structVar.ToJson().Data(), "fields")
 	}
 
 	return jsonObj

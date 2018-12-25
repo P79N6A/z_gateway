@@ -17,7 +17,6 @@ type ApiObj struct {
 
 	Version     int64
 
-	// TODO:: 填充
 	StructsMap *map[string]*StructObj
 }
 
@@ -41,17 +40,17 @@ func (apiObj *ApiObj) ToJson() (*gabs.Container) {
 		}
 
 		if apiParamTypeStr != "" {
-			if structObj, ok := (*apiObj.StructsMap)[subApiParam.SubParamName]; ok == true {
+			if structObj, ok := (*apiObj.StructsMap)[subApiParam.SubParamTypeName]; ok == true {
 				structJson := structObj.ToJson()
 
 				// TODO:: 没有设置
 				structJson.Set(apiParamTypeStr, "sub_param_type")
-				jsonObj.ArrayAppend(structJson, "sub_params")
+				jsonObj.ArrayAppend(structJson.Data(), "sub_params")
 			} else {
-				logrus.Error("struct(%s) not exist", subApiParam.SubParamName)
+				logrus.Error("struct(%s) not exist", subApiParam.SubParamTypeName)
 			}
 		} else {
-			logrus.Error("struct(%s)'s sub param type(%s) not exist", subApiParam.SubParamName, apiParamTypeStr)
+			logrus.Error("struct(%s)'s sub param type(%s) not exist", subApiParam.SubParamTypeName, apiParamTypeStr)
 		}
 	}
 

@@ -28,6 +28,11 @@ message RequestParams {
     int32 content_type = 0; // 0 - 简短的内容， 1 - 详细信息
 }
 
+message MessageData {
+    int32 code = 1;
+    string message = 2;
+}
+
 message RequestHeaders {
     repeated int32 max_findings = 1;
     double min_findings = 2;
@@ -35,7 +40,8 @@ message RequestHeaders {
 
 message RequestBody {
     int32 max_findings = 1;
-    double min_findings = 2;   
+    double min_findings = 2;
+    MessageData data = 3;
 }
 
 

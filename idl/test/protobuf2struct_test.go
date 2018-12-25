@@ -24,5 +24,5 @@ func TestProto2Struct(t *testing.T) {
 
 	moduleObj := module2Struct.ToStructs()
 	jsonObj := moduleObj.ToJson()
-	fmt.Println(jsonObj.StringIndent("", "  "))
+	fmt.Println(jsonObj.String())
 }
