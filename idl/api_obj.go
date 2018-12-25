@@ -17,6 +17,7 @@ type ApiObj struct {
 
 	Version     int64
 
+	// TODO:: 填充
 	StructsMap *map[string]*StructObj
 }
 
@@ -42,6 +43,8 @@ func (apiObj *ApiObj) ToJson() (*gabs.Container) {
 		if apiParamTypeStr != "" {
 			if structObj, ok := (*apiObj.StructsMap)[subApiParam.SubParamName]; ok == true {
 				structJson := structObj.ToJson()
+
+				// TODO:: 没有设置
 				structJson.Set(apiParamTypeStr, "sub_param_type")
 				jsonObj.ArrayAppend(structJson, "sub_params")
 			} else {

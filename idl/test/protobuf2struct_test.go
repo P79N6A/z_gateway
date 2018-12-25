@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"github.com/CharellKing/z_gateway/idl/protobuf"
 	"io/ioutil"
 	"log"
@@ -22,5 +23,6 @@ func TestProto2Struct(t *testing.T) {
 	}
 
 	moduleObj := module2Struct.ToStructs()
-	moduleObj.ToJson()
+	jsonObj := moduleObj.ToJson()
+	fmt.Println(jsonObj.StringIndent("", "  "))
 }

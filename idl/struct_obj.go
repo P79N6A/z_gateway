@@ -38,6 +38,8 @@ func (structObj *StructObj) ToJson() *gabs.Container {
 	jsonObj := gabs.New()
 	jsonObj.Set(structObj.Name, "name")
 	jsonObj.Set(structObj.Desc, "desc")
+	jsonObj.Set("object", "type")
+
 
 	for _, structVar := range structObj.Vars {
 		jsonObj.ArrayAppend(structVar.ToJson(), "fields")

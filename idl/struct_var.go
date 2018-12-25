@@ -1,6 +1,8 @@
 package idl
 
-import "github.com/Jeffail/gabs"
+import (
+	"github.com/Jeffail/gabs"
+)
 
 // struct' variable
 type StructVar struct {
@@ -12,6 +14,9 @@ type StructVar struct {
 	Desc       string
 	Default    interface{}
 	Extra      map[string]interface{}
+
+	// TODO:: StructMaps
+	StructsMap map[string]*StructObj
 }
 
 func (structVar *StructVar) StructVarIsEqual(otherStructVar *StructVar) bool {
@@ -23,34 +28,46 @@ func (structVar *StructVar) StructVarIsEqual(otherStructVar *StructVar) bool {
 		structVar.Default == otherStructVar.Default
 }
 
+func (structVar *StructVar) ItemToJson() *gabs.Container {
+	if _, ok := BASIC_JSON_TYPES[structVar.SubType]; ok == true {
+		jsonObj := gabs.New()
+		jsonObj.Set(structVar.Type, "type")
+		return jsonObj
+	}
+
+	if structObj, ok := structVar.StructsMap[structVar.SubType]; ok == true {
+		return structObj.ToJson()
+	}
+
+	return nil
+}
+
+
 func (structVar *StructVar) ToJson() *gabs.Container{
 	jsonObj := gabs.New()
 	jsonObj.Set(structVar.Order, "order")
 	jsonObj.Set(structVar.Name, "name")
-	jsonObj.Set(structVar.Type, "type")
 	jsonObj.Set(structVar.IsRequired, "is_required")
 	jsonObj.Set(structVar.Desc, "desc")
 
-	if structVar.Default != nil {
-		jsonObj.Set(structVar.Default, "default")
-	}
+	if _, ok := BASIC_JSON_TYPES[structVar.Type]; ok == true {
+		jsonObj.Set(structVar.Type, "type")
+		return jsonObj
 
-	for k, v := range structVar.Extra {
-		jsonObj.Set(v, "extra." + k)
 	}
 
 	if structVar.Type == "list" {
-
-		// TODO:: structVar.SubType 为普通类型
-
-		// TODO:: structVar.SubType 为object
-
-		// TODO:: structVar.SubType 为item类型
-
-
+		jsonObj.Set(structVar.Type, "type")
+		jsonObj.Set(structVar.ItemToJson(), "item")
+		return jsonObj
 	}
 
-	// TODO:: structVar.Type为object类型
+	if structObj, ok := structVar.StructsMap[structVar.Type]; ok == true {
+		jsonObj.Set("object", "type")
+		jsonObj.Set(structVar.Type, "name")
+
+		jsonObj.Merge(structObj.ToJson())
+	}
 
 	return jsonObj
 }
