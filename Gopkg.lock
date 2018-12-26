@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:c57ad35d63c0e275de7e92f4ba61fdda896d11b9a55d74957d54c3c6b14c1cee"
+  name = "code.byted.org/gopkg/pkg"
+  packages = ["log"]
+  pruneopts = "UT"
+  revision = "606aa75bbd0165503efe5e7e3542164b6a9f75c5"
+
+[[projects]]
   digest = "1:1642d82630adff3904f7965aa1aac2d7bfb8ae93a9b3da849ee38d72bb4c49e7"
   name = "github.com/Jeffail/gabs"
   packages = ["."]
@@ -26,28 +34,20 @@
   version = "v1.6.7"
 
 [[projects]]
-  branch = "master"
-  digest = "1:89cd2208bdeb192cc83ee287216af3c987fc87a90b9087718ad6631b636cefcf"
-  name = "github.com/iancoleman/strcase"
+  digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3605ed457bf7f8caa1371b4fafadadc026673479"
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e46d65f9f587fdc342c86135ac46449ab1302717a68ee0336568ed35ce945722"
-  name = "github.com/linkosmos/mapop"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "30336b2a6179ae763465b95e561c99eb87cba942"
-
-[[projects]]
-  digest = "1:36a75ab002c1cfb43bcc5d2ec10fbdc2a1136e9246a65e535f1d827435f28f17"
+  digest = "1:69b1cc331fca23d702bd72f860c6a647afd0aa9fcbc1d0659b1365e26546dd70"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "418b41d23a1bf978c06faea5313ba194650ac088"
-  version = "v0.8.7"
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -57,15 +57,33 @@
   pruneopts = "UT"
   revision = "00e24f1b25994999399dee600cb8f35a45f519dc"
 
+[[projects]]
+  branch = "master"
+  digest = "1:38f553aff0273ad6f367cb0a0f8b6eecbaef8dc6cb8b50e57b6a81c1d5b1e332"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "UT"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3d5e79e10549fd9119cbefd614b6d351ef5bd0be2f2b103a4199788e784cbc68"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+  ]
+  pruneopts = "UT"
+  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "code.byted.org/gopkg/pkg/log",
     "github.com/Jeffail/gabs",
     "github.com/bradfitz/slice",
     "github.com/emicklei/proto",
-    "github.com/iancoleman/strcase",
-    "github.com/linkosmos/mapop",
     "github.com/sirupsen/logrus",
   ]
   solver-name = "gps-cdcl"

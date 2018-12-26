@@ -12,7 +12,7 @@ import (
 func TestProto2Struct(t *testing.T) {
 	goPath := os.Getenv("GOPATH")
 
-	content, err := ioutil.ReadFile(goPath + "/src/github.com/CharellKing/z_gateway/test/protobuf/test.proto")
+	content, err := ioutil.ReadFile(goPath + "/src/github.com/CharellKing/z_gateway/idl/test/samples/module.proto")
 	if err != nil {
 		log.Fatal(err)
 	}

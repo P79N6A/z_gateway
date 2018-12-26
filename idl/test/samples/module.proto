@@ -1,4 +1,11 @@
-syntax = "proto3";
+syntax = "proto2";
+
+option csharp_namespace = "Google.Cloud.Dlp.V2";
+option go_package = "google.golang.org/genproto/googleapis/privacy/dlp/v2;dlp";
+option java_multiple_files = true;
+option java_outer_classname = "DlpProto";
+option java_package = "com.google.privacy.dlp.v2";
+option php_namespace = "Google\\Cloud\\Dlp\\V2";
 
 // 学生
 service Student {
@@ -28,9 +35,15 @@ message RequestParams {
     int32 content_type = 0; // 0 - 简短的内容， 1 - 详细信息
 }
 
+message StudentItem {
+    string name = 1;
+    int32 age = 2;
+}
+
 message MessageData {
     int32 code = 1;
     string message = 2;
+    repeated StudentItem items = 3;
 }
 
 message RequestHeaders {
